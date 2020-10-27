@@ -1,16 +1,17 @@
+// import data.csv
 d3.csv('assets/data/data.csv').then(data => {
     console.log("data.csv", data)
 
 // Setting the SVG perimeter
-let svgWidth = 1000;
+let svgWidth = 950;
 let svgHeight = 500;
 
 // Setting the margins that will be used to get a chart area
 let margin = {
     top: 20,
-    right: 40,
+    right: 60,
     bottom: 80,
-    left: 100
+    left: 75
 };
 
 // Chart area
@@ -29,9 +30,9 @@ let chartGroup = svg.append('g')
     .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
 // Initial Params
-// Y axis is going to be healthcare
-// X axis is going to be inPoverty or it's going to be age
-let chosenX = 'inPoverty';
+// Y axis is going to be healthcare or smokes or obese
+// X axis is going to be poverty or age or HH Income
+let chosenX = 'poverty';
 
 // Create a function that will go through and update the x_scale upon clicking on the axis label
 function xScale(poverty, chosenX) {
@@ -46,9 +47,7 @@ function xScale(poverty, chosenX) {
 // Function for rendering x-Axis, whenever we have a click event
 function renderAxes(newXScale, xAxis) {
     let bottomAxis = d3.axisBottom(newXScale); 
-    xAxis.transition()
-        .duration(1000)
-        .call(bottomAxis);
+    xAxis.transition().duration(1000).call(bottomAxis);
     return xAxis;
 };
 
@@ -65,13 +64,13 @@ function renderCircles(circlesGroup, newXScale, chosenX) {
 function updateToolTip(chosenX, circlesGroup) {
     let label;
 
-    if (chosenX === "inPoverty") {
+    if (chosenX === "poverty") {
         label = 'In Poverty (%):'
     }
     else {
-        label = 'placeholder'
+        label = 'Age (Median)'
     }
-
+    
     let toolTip = d3.tip()
         .attr("class", "tooltip")
         .offset([80, -60])
@@ -94,10 +93,14 @@ d3.csv('assets/data/data.csv').then(data => {
     data.forEach(function(data) {
         data.poverty = +data.poverty;
         data.healthcare = +data.healthcare;
-        data.age = +data.age
+        //data.age = +data.age
     })
 
     let xLinearScale = xScale(data, chosenX);
+
+    // let xLinearScale = d3.scaleLinear()
+    // .domain([d3.max(data, d=>d.poverty), d3.max(data, d=>d.poverty)])
+    // .range([0, width]);
 
     let yLinearScale = d3.scaleLinear()
         .domain([0, d3.max(data, d=>d.healthcare)])
@@ -125,7 +128,20 @@ d3.csv('assets/data/data.csv').then(data => {
         .attr("cy", d => yLinearScale(d.healthcare))
         .attr("r", 20)
         .attr("fill", "blue")
-        .attr("opacity", "0.5")
+        .attr("opacity", "0.9")
+
+    // append initial circles 
+    chartGroup.selectAll("#scatter")
+        .data(data)
+        .enter()
+        .append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", d => xLinearScale(d[chosenX]))
+        .attr("y", d => yLinearScale(d.healthcare))
+        .attr("fill", "black")
+        .text(function(d){return d.abbr})
+
+
     
     let labelsGroup = chartGroup.append("g")
         .attr("transform", `translate(${width / 2}, ${height + 20})`)
@@ -133,7 +149,7 @@ d3.csv('assets/data/data.csv').then(data => {
     let povertyLabels = labelsGroup.append("text")
         .attr("x", 0)
         .attr("y", 20)
-        .attr("value", "inPoverty")
+        .attr("value", "poverty")
         .classed("active", true)
         .text("In Poverty (%)");
     
