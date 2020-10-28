@@ -9,7 +9,7 @@ let svgHeight = 500;
 // Setting the margins that will be used to get a chart area
 let margin = {
     top: 20,
-    right: 60,
+    right: 40,
     bottom: 80,
     left: 75
 };
@@ -51,7 +51,7 @@ function renderAxes(newXScale, xAxis) {
     return xAxis;
 };
 
-// functoin used for updating the circles group with a transition to new circles
+// function used for updating the circles group with a transition to new circles
 function renderCircles(circlesGroup, newXScale, chosenX) {
     circlesGroup.transition()
         .duration(1000)
@@ -60,22 +60,23 @@ function renderCircles(circlesGroup, newXScale, chosenX) {
     return circlesGroup;
 };
 
-// update the circles group with a new tooltip
+// update the circles group with a ne     w tooltip
 function updateToolTip(chosenX, circlesGroup) {
     let label;
 
-    if (chosenX === "poverty") {
+    if (chosenX === "poverty") {        
         label = 'In Poverty (%):'
     }
-    else {
+    else if (chosenX ==="age") {
         label = 'Age (Median)'
     }
+    else {label = 'Household Income (Median):'}
     
     let toolTip = d3.tip()
-        .attr("class", "tooltip")
+        .attr("class", "d3-tip")
         .offset([80, -60])
         .html(function(d) {
-            return (`${d.abbr}<br><br>${label} ${d[chosenX]}`);
+            return (`${d.abbr}<br>${label} ${d[chosenX]} <br> Lacks Healthcare ${d.healthcare}`);
         });
     
     circlesGroup.call(toolTip);
@@ -93,15 +94,11 @@ d3.csv('assets/data/data.csv').then(data => {
     data.forEach(function(data) {
         data.poverty = +data.poverty;
         data.healthcare = +data.healthcare;
-        //data.age = +data.age
+        data.age = +data.age
     })
 
     let xLinearScale = xScale(data, chosenX);
-
-    // let xLinearScale = d3.scaleLinear()
-    // .domain([d3.max(data, d=>d.poverty), d3.max(data, d=>d.poverty)])
-    // .range([0, width]);
-
+// 2:50:13
     let yLinearScale = d3.scaleLinear()
         .domain([0, d3.max(data, d=>d.healthcare)])
         .range([height, 0]);
@@ -126,8 +123,8 @@ d3.csv('assets/data/data.csv').then(data => {
         .append("circle")
         .attr("cx", d => xLinearScale(d[chosenX]))
         .attr("cy", d => yLinearScale(d.healthcare))
-        .attr("r", 20)
-        .attr("fill", "blue")
+        .attr("r", 15)
+        .attr("fill", "lightblue")
         .attr("opacity", "0.9")
 
     // append initial circles 
@@ -155,6 +152,7 @@ d3.csv('assets/data/data.csv').then(data => {
     
     let ageLabels = labelsGroup.append("text")
         .attr("x", 0)
+        .attr("y", 40)
         .attr("y", 40)
         .attr("value", "age")
         .classed("inactive", true)
